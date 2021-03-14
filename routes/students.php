@@ -68,3 +68,35 @@ $app->get('/students/get/{id}', function (Request $request, Response $response, 
     }
 
 });
+
+$app->post('/students/post', function (Request $request, Response $response, $args) {
+    
+    $data = json_decode($request->getBody(), true);
+    $name = $data['name'];
+    $age = $data['age'];
+    $address = $data['address'];
+    
+    $query = "INSERT INTO students SET name = :name, address = :address, age = :age";
+
+    try {
+
+        $db = new Database();
+        $db = $db->connect();
+
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':address', $address);
+        $stmt->bindParam(':age', $age);
+
+        $result = $stmt->execute();
+
+        $response->getBody()->write(json_encode(array('message'=> 'Student added')));
+        return $response->withHeader('Content-Type', 'application.json')->withStatus(200);
+
+    } catch(PDOException $exp) {
+
+        $response->getBody()->write(json_encode(array('Error' => $exp->getMessage())));
+        return $response->withHeader('Content-Type', 'application.json')->withStatus(500);
+    }
+
+});
