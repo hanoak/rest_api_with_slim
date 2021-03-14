@@ -37,3 +37,34 @@ $app->get('/students/get', function (Request $request, Response $response, $args
     }
     
 });
+
+$app->get('/students/get/{id}', function (Request $request, Response $response, $args) {
+    
+    $id = $args['id'];
+    $query = "SELECT * FROM students WHERE id = $id";
+
+    try {
+
+        $db = new Database();
+        $db = $db->connect();
+
+        $stmt = $db->query($query);
+        $student = $stmt->fetch(PDO::FETCH_OBJ);
+
+        if(! empty($student)) {
+
+            $response->getBody()->write(json_encode($student));
+            return $response->withHeader('Content-Type', 'application.json')->withStatus(200);
+
+        } else {
+            $response->getBody()->write(json_encode(array('message' => "No records found!")));
+            return $response->withHeader('Content-Type', 'application.json')->withStatus(200);
+        }
+
+    } catch(PDOException $exp) {
+
+        $response->getBody()->write(json_encode(array('Error' => $exp->getMessage())));
+        return $response->withHeader('Content-Type', 'application.json')->withStatus(500);
+    }
+
+});
