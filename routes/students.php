@@ -100,3 +100,28 @@ $app->post('/students/post', function (Request $request, Response $response, $ar
     }
 
 });
+
+
+$app->delete('/students/delete/{id}', function (Request $request, Response $response, $args) {
+    
+    $id = $args['id'];
+    $query = "DELETE FROM students WHERE id= $id";
+
+    try {
+
+        $db = new Database();
+        $db = $db->connect();
+
+        $stmt = $db->prepare($query);
+        $result = $stmt->execute();
+
+        $response->getBody()->write(json_encode(array('message'=> 'Student deleted')));
+        return $response->withHeader('Content-Type', 'application.json')->withStatus(200);
+
+    } catch(PDOException $exp) {
+
+        $response->getBody()->write(json_encode(array('Error' => $exp->getMessage())));
+        return $response->withHeader('Content-Type', 'application.json')->withStatus(500);
+    }
+
+});
