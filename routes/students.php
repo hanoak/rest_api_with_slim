@@ -38,6 +38,7 @@ $app->get('/students/get', function (Request $request, Response $response, $args
     
 });
 
+
 $app->get('/students/get/{id}', function (Request $request, Response $response, $args) {
     
     $id = $args['id'];
@@ -116,6 +117,41 @@ $app->delete('/students/delete/{id}', function (Request $request, Response $resp
         $result = $stmt->execute();
 
         $response->getBody()->write(json_encode(array('message'=> 'Student deleted')));
+        return $response->withHeader('Content-Type', 'application.json')->withStatus(200);
+
+    } catch(PDOException $exp) {
+
+        $response->getBody()->write(json_encode(array('Error' => $exp->getMessage())));
+        return $response->withHeader('Content-Type', 'application.json')->withStatus(500);
+    }
+
+});
+
+
+$app->put('/students/put/{id}', function (Request $request, Response $response, $args) {
+    
+    $data = json_decode($request->getBody(), true);
+    $name = $data['name'];
+    $age = $data['age'];
+    $address = $data['address'];
+    $id = $args['id'];
+    
+    $query = "UPDATE students SET name = :name, address = :address, age = :age WHERE id = :id";
+
+    try {
+
+        $db = new Database();
+        $db = $db->connect();
+
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':address', $address);
+        $stmt->bindParam(':age', $age);
+        $stmt->bindParam(':id', $id);
+
+        $result = $stmt->execute();
+
+        $response->getBody()->write(json_encode(array('message'=> 'Student updated')));
         return $response->withHeader('Content-Type', 'application.json')->withStatus(200);
 
     } catch(PDOException $exp) {
